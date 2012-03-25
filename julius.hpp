@@ -63,7 +63,7 @@ public:
 	 *  @return callback ID
 	 */
 
-	int add_result_callback(callback func, void* = nullptr);
+	int add_result_callback(callback func, void* this_ = nullptr);
 
 	/**
 	 *  delete callback functions
@@ -72,7 +72,7 @@ public:
 	 */
 	bool delete_callback(const int id);
 
-private:
+// private:
 	/**
 	 *  do some initialization process for Julius
 	 *  @param [in] jconf	jconf file name (-C parameter for Julius)

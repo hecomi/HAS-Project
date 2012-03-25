@@ -5,23 +5,29 @@ IJULIUS  = -I$(LIBJULIUS)/include -I$(LIBSENT)/include  `$(LIBSENT)/libsent-conf
 LJULIUS  = -L$(LIBJULIUS) `$(LIBJULIUS)/libjulius-config --libs` -L$(LIBSENT) `$(LIBSENT)/libsent-config --libs`
 
 CXX      = g++-4.6
-CXXFLAGS = -g -O2 -Wall -std=c++0x $(IJULIUS)
-LDFLAGS  = -lboost_thread -lboost_system -lboost_regex -lalut $(LJULIUS)
+CXXFLAGS = -g -O2 -Wall -std=c++0x
+LDFLAGS  = -lboost_thread -lboost_system -lboost_regex -lalut
 
-SOURCES  = $(shell ls *.cpp)
+SOURCES  = $(shell ls *.cpp) oll/oll.cpp
 OBJECTS  = $(SOURCES:.cpp=.o)
 TARGET   = has
+
+CLEAN    = $(RM) *.o *.bak *~ core TAGS
 
 ############################################################
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(LJULIUS)
+
+julius.o home_automation_system.o:
+	$(CXX) $(CXXFLAGS) -c $(@:.o=.cpp) $(IJULIUS)
 
 clean:
-	$(RM) *.o *.bak *~ core TAGS
+	$(CLEAN)
+	$(RM) $(OBJECTS)
 
 distclean:
-	$(RM) *.o *.bak *~ core TAGS
+	$(CLEAN)
 	$(RM) $(TARGET)

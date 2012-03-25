@@ -4,9 +4,11 @@
 #include <string>
 #include <map>
 #include <boost/optional.hpp>
+#include <boost/shared_ptr.hpp>
 #include "iremocon.hpp"
 #include "julius.hpp"
 #include "openjtalk.hpp"
+// #include "oll.hpp"
 
 class HomeAutomationSystem
 {
@@ -15,13 +17,24 @@ private:
 	std::map<std::string, int> str_ir_map_;
 
 	//! iRemocon へ接続するクライアント
-	iRemocon iremocon_;
+	boost::shared_ptr<iRemocon> iremocon_;
 
-	//! Julius インスタンス
-	Julius julius_;
+	//! 音声認識エンジン Julius インスタンス
+	boost::shared_ptr<Julius> julius_;
 
-	//! 音声会話を制御するクラス
-	OpenJTalk open_jtalk_;
+	//! OpenJTalk によって音声会話を制御するインスタンス
+	boost::shared_ptr<OpenJTalk> open_jtalk_;
+
+	//! オンライン学習をするインスタンス
+	// OnlineLearningLibrary<oll_tool::CW> oll_;
+
+	/**
+	 * 認識させる文章と対応して送信する IR の番号を書いた
+	 * XML を読み込んでマップに格納。
+	 * @param [in] cmd	コマンド（e.g. テレビを消して）
+	 * @return			ファイルの読み込みの成否
+	 */
+	bool learn_commands_from_xml(const std::string& file_name);
 
 	/**
 	 * 文章を引数にとって予め登録した言葉に合致するか調べる。
@@ -39,19 +52,8 @@ private:
 public:
 	/**
 	 * Constructor
-	 * @param [in] iremocon	iRemocon インスタンス
-	 * @param [in] julius	Julius インスタンス
-	 * @param [in] open_jtalk	発話エンジン（OpenJTalk or GoogleTTS）
 	 */
-	HomeAutomationSystem(const iRemocon& iremocon, const Julius& julius, const OpenJTalk& open_jtalk);
-
-	/**
-	 * 認識させる文章と対応して送信する IR の番号を書いた
-	 * XML を読み込んでマップに格納。
-	 * @param [in] cmd	コマンド（e.g. テレビを消して）
-	 * @return			ファイルの読み込みの成否
-	 */
-	bool learn_commands_from_xml(const std::string& file_name);
+	HomeAutomationSystem();
 
 	/**
 	 * プロセス開始

@@ -1,7 +1,14 @@
-サーバモードでなく Julius を直接バイナリに埋め込んで色々やってみよう、という実験です。
+Julius + OpenJTalk で対話型システムを構築するプロジェクト
 
-[2012/02/26 (日)]
-	・組み込んで動かしてみた
+v8 を利用して JavaScript でいろんなシナリオを書けるようにしたい。
+
+ToDo:
+	[x] Julius + OpenJTalk で喋ったコマンドを復唱する
+	[ ] 間違った答えを返した時にキャンセルできるようにする
+	[ ] OLL による機械学習を使って誤認識を減らす
+	[ ] v8 で iRemocon操作 / Julius のコールバック記述 / OpenJTalk 操作を JavaScript 側に公開
+	[ ] Julius 設定ファイルをもっと簡単に書けるようにする
+	[ ] ...
 
 for more details:
 	http://d.hatena.ne.jp/hecomi/

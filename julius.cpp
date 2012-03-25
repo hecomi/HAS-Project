@@ -30,7 +30,7 @@ void Julius::init(const std::string& jconf, const std::string& gram)
 	};
 	const int j_argc = sizeof(j_argv) / sizeof(j_argv[0]);
 
-	// Jconf: configuration parameters
+	// jconf: configuration parameters
 	// load configurations from command arguments
 	jconf_ = j_config_load_args_new(j_argc, const_cast<char**>(j_argv));
 	if (jconf_ == nullptr) {
@@ -53,8 +53,9 @@ void Julius::init(const std::string& jconf, const std::string& gram)
 	}
 
 	// Disable debug & verbose messages
-	// j_disable_debug_message();
-	// j_disable_verbose_message();
+	j_disable_debug_message();
+	j_disable_verbose_message();
+
 }
 
 void Julius::start()
@@ -76,24 +77,24 @@ void Julius::start()
 	getline(std::cin, line);
 }
 
-int Julius::add_callback(const int code, callback func, void* this_)
+int Julius::add_callback(const int code, callback func, void* _this)
 {
-	return callback_add(recog_, code, func, this_);
+	return callback_add(recog_, code, func, _this);
 }
 
-int Julius::add_speech_ready_callback(callback func, void* this_)
+int Julius::add_speech_ready_callback(callback func, void* _this)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, this_);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, _this);
 }
 
-int Julius::add_speech_start_callback(callback func, void* this_)
+int Julius::add_speech_start_callback(callback func, void* _this)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, this_);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, _this);
 }
 
-int Julius::add_result_callback(callback func, void* this_)
+int Julius::add_result_callback(callback func, void* _this)
 {
-	return callback_add(recog_, CALLBACK_RESULT, func, this_);
+	return callback_add(recog_, CALLBACK_RESULT, func, _this);
 }
 
 bool Julius::delete_callback(const int id)

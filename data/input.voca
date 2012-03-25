@@ -1,0 +1,26 @@
+% TARGET
+テレビ     t e r e b i
+電気       d e n k i
+
+% WO
+を         w o
+を         o
+
+% ACTION
+つけて     ts u k e t e
+消して     k e sh i t e
+切替       k i r i k a e
+次         ts u g i
+前         m a e
+
+% SENTENCE
+バルス     b a r u s u
+
+% NOISE
+<sp>       sp
+
+% NS_B
+<s>        silB
+
+% NS_E
+<s>        silE

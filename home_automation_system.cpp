@@ -2,18 +2,21 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
+#include <boost/make_shared.hpp>
 #include "home_automation_system.hpp"
 
 /* ------------------------------------------------------------------------- */
 //  Constructor
 /* ------------------------------------------------------------------------- */
-HomeAutomationSystem::HomeAutomationSystem(
-	const iRemocon& iremocon,
-	const Julius& julius,
-	const OpenJTalk& open_jtalk
-) : iremocon_(iremocon), julius_(julius), open_jtalk_(open_jtalk)
+HomeAutomationSystem::HomeAutomationSystem()
 {
+	iremocon_   = boost::make_shared<iRemocon>("192.168.0.3", 51013);
+	julius_     = boost::make_shared<Julius>("julius/hmm_mono.jconf", "julius/gram/kaden");
+	open_jtalk_ = boost::make_shared<OpenJTalk>("openjtalk/mei_normal");
+
+	learn_commands_from_xml("julius/gram/commands.xml");
 	add_julius_callback();
+	julius_->start();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -35,6 +38,7 @@ bool HomeAutomationSystem::learn_commands_from_xml(const std::string& file_name)
 			return false;
 		}
 		str_ir_map_.insert( std::make_pair(word.get(), num.get()) );
+		std::cout << boost::format("LEARNED: [%1%]\t%2%\n") % num.get() % word.get();
 	}
 
 	return true;
@@ -70,19 +74,19 @@ boost::optional<int> HomeAutomationSystem::interpret(const std::string& sentence
 void HomeAutomationSystem::add_julius_callback()
 {
 	// 待機時処理
-	julius_.add_speech_ready_callback([](Recog*, void*){
+	julius_->add_speech_ready_callback([](Recog*, void*){
 		std::cout << "<<< PLEASE SPEECH! >>>" << std::endl;
 	});
 
 	// 発話開始時処理
-	julius_.add_speech_start_callback([](Recog*, void*){
+	julius_->add_speech_start_callback([](Recog*, void*){
 		std::cout << "<<< SPEAKING... >>>" << std::endl;
 	});
 
 	// 結果が返された時の処理
-	julius_.add_result_callback([](Recog* recog, void* this_){
+	julius_->add_result_callback([](Recog* recog, void* _this){
 		// callback の引数から this を復元
-		HomeAutomationSystem* has = static_cast<HomeAutomationSystem*>(this_);
+		HomeAutomationSystem* has = static_cast<HomeAutomationSystem*>(_this);
 
 		// 結果を走査
 		for (const RecogProcess *r = recog->process_list; r; r = r->next) {
@@ -105,7 +109,7 @@ void HomeAutomationSystem::add_julius_callback()
 				if (ir_num) {
 					has->talk(output + "、を実行します");
 					std::cout << ir_num << std::endl;
-					// has->iremocon_.ir_send(ir_num.get());
+					has->iremocon_->ir_send(ir_num.get());
 				}
 			}
 		}
@@ -113,11 +117,15 @@ void HomeAutomationSystem::add_julius_callback()
 }
 
 /* ------------------------------------------------------------------------- */
+//  機械学習をするための素性リストを書きだす
+/* ------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------------------- */
 //  認識開始
 /* ------------------------------------------------------------------------- */
 void HomeAutomationSystem::start()
 {
-	julius_.start();
+	julius_->start();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -125,5 +133,5 @@ void HomeAutomationSystem::start()
 /* ------------------------------------------------------------------------- */
 void HomeAutomationSystem::talk(const std::string& str)
 {
-	open_jtalk_.talk(str);
+	open_jtalk_->talk(str);
 }
