@@ -10,9 +10,9 @@
 /* ------------------------------------------------------------------------- */
 HomeAutomationSystem::HomeAutomationSystem()
 {
-	iremocon_   = boost::make_shared<iRemocon>("192.168.0.3", 51013);
-	julius_     = boost::make_shared<Julius>("julius/hmm_mono.jconf", "julius/gram/kaden");
-	open_jtalk_ = boost::make_shared<OpenJTalk>("openjtalk/mei_normal");
+	iremocon_  = boost::make_shared<iRemocon>("192.168.0.3", 51013);
+	julius_    = boost::make_shared<Julius>("julius/hmm_mono.jconf", "julius/gram/kaden");
+	tts_       = boost::make_shared<TextToSpeech>("openjtalk/mei_normal", "openjtalk/open_jtalk_dic_utf_8-1.05");
 
 	learn_commands_from_xml("julius/gram/commands.xml");
 	add_julius_callback();
@@ -109,7 +109,7 @@ void HomeAutomationSystem::add_julius_callback()
 				if (ir_num) {
 					has->talk(output + "、を実行します");
 					std::cout << ir_num << std::endl;
-					has->iremocon_->ir_send(ir_num.get());
+					// has->iremocon_->ir_send(ir_num.get());
 				}
 			}
 		}
@@ -133,5 +133,5 @@ void HomeAutomationSystem::start()
 /* ------------------------------------------------------------------------- */
 void HomeAutomationSystem::talk(const std::string& str)
 {
-	open_jtalk_->talk(str);
+	tts_->talk(str);
 }

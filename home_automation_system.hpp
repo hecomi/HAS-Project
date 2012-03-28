@@ -7,7 +7,7 @@
 #include <boost/shared_ptr.hpp>
 #include "iremocon.hpp"
 #include "julius.hpp"
-#include "openjtalk.hpp"
+#include "text_to_speech.hpp"
 // #include "oll.hpp"
 
 class HomeAutomationSystem
@@ -23,7 +23,7 @@ private:
 	boost::shared_ptr<Julius> julius_;
 
 	//! OpenJTalk によって音声会話を制御するインスタンス
-	boost::shared_ptr<OpenJTalk> open_jtalk_;
+	boost::shared_ptr<TextToSpeech> tts_;
 
 	//! オンライン学習をするインスタンス
 	// OnlineLearningLibrary<oll_tool::CW> oll_;
