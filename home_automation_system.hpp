@@ -10,6 +10,9 @@
 #include "text_to_speech.hpp"
 // #include "oll.hpp"
 
+/**
+ *  Home Automation System 本体
+ */
 class HomeAutomationSystem
 {
 private:
@@ -27,6 +30,19 @@ private:
 
 	//! オンライン学習をするインスタンス
 	// OnlineLearningLibrary<oll_tool::CW> oll_;
+
+	//! HASの状態
+	enum class HAS_STATE {
+		INIT,
+		READY,
+		USER_SPEAKING,
+		HAS_TALKING,
+		CANCELED,
+		ANALYZING,
+		EXECUTING,
+		DONE,
+	};
+	HAS_STATE state_;
 
 	/**
 	 * 認識させる文章と対応して送信する IR の番号を書いた

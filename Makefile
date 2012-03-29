@@ -26,7 +26,7 @@ $(TARGET): $(OBJECTS)
 	cd $(OPENJTALK_DIR) && $(MAKE)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(LJULIUS) $(LOPENJTALK)
 
-test.o home_automation_system.o:
+main.o home_automation_system.o:
 	$(CXX) $(CXXFLAGS) -c $(@:.o=.cpp) $(IJULIUS) $(IOPENJTALK)
 
 julius.o:

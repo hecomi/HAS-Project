@@ -16,8 +16,8 @@ public:
 
 	/**
 	 * Constructor
-	 * @param [in] jconf	jconf file name (-C parameter for Julius)
-	 * @param [in] gram		grammar bundle name (-gram parameter for Julius)
+	 * @param[in] jconf	jconf file name (-C parameter for Julius)
+	 * @param[in] gram		grammar bundle name (-gram parameter for Julius)
 	 */
 	Julius(const std::string& jconf, const std::string& gram);
 
@@ -33,41 +33,41 @@ public:
 
 	/**
 	 *  add callback functions
-	 *  @param [in] callback code (e.g. CALLBACK_EVENT_SPEECH_READY)
-	 *  @param [in] callback function
-	 *  @param [in] the instance that adds callback function
+	 *  @param[in] callback code (e.g. CALLBACK_EVENT_SPEECH_READY)
+	 *  @param[in] callback function
+	 *  @param[in] the instance that adds callback function
 	 *  @return callback ID
 	 */
-	int add_callback(const int code, callback func, void* this_ = nullptr);
+	int add_callback(const int code, callback func, void* has = nullptr);
 
 	/**
 	 *  add speech ready callback function
-	 *  @param [in] callback function
-	 *  @param [in] the instance that adds callback function
+	 *  @param[in] callback function
+	 *  @param[in] the instance that adds callback function
 	 *  @return callback ID
 	 */
-	int add_speech_ready_callback(callback func, void* this_ = nullptr);
+	int add_speech_ready_callback(callback func, void* has = nullptr);
 
 	/**
 	 *  add speech start callback function
-	 *  @param [in] callback function
-	 *  @param [in] the instance that adds callback function
+	 *  @param[in] callback function
+	 *  @param[in] the instance that adds callback function
 	 *  @return callback ID
 	 */
-	int add_speech_start_callback(callback func, void* this_ = nullptr);
+	int add_speech_start_callback(callback func, void* has = nullptr);
 
 	/**
 	 *  add result callback function
-	 *  @param [in] callback function
-	 *  @param [in] the instance that adds callback function
+	 *  @param[in] callback function
+	 *  @param[in] the instance that adds callback function
 	 *  @return callback ID
 	 */
 
-	int add_result_callback(callback func, void* this_ = nullptr);
+	int add_result_callback(callback func, void* has = nullptr);
 
 	/**
 	 *  delete callback functions
-	 *  @param [in] callback ID
+	 *  @param[in] callback ID
 	 *  @return true:success, false:failed
 	 */
 	bool delete_callback(const int id);
@@ -75,8 +75,8 @@ public:
 // private:
 	/**
 	 *  do some initialization process for Julius
-	 *  @param [in] jconf	jconf file name (-C parameter for Julius)
-	 *  @param [in] gram	grammar bundle name (-gram parameter for Julius)
+	 *  @param[in] jconf jconf file name (-C parameter for Julius)
+	 *  @param[in] gram  grammar bundle name (-gram parameter for Julius)
 	 */
 	void init(const std::string& jconf, const std::string& gram);
 

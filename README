@@ -3,11 +3,15 @@ Julius + OpenJTalk で対話型システムを構築するプロジェクト
 v8 を利用して JavaScript でいろんなシナリオを書けるようにしたい。
 
 ToDo:
-	[x] Julius + OpenJTalk で喋ったコマンドを復唱する
-	[ ] 間違った答えを返した時にキャンセルできるようにする
+	[x] (2012/03/28) Julius + OpenJTalk で喋ったコマンドを復唱
+	[x] (2012/03/29) 間違った答えを返した時にキャンセル
 	[ ] OLL による機械学習を使って誤認識を減らす
-	[ ] v8 で iRemocon操作 / Julius のコールバック記述 / OpenJTalk 操作を JavaScript 側に公開
-	[ ] Julius 設定ファイルをもっと簡単に書けるようにする
+	[ ] v8 で各機能を JavaScript 側に公開
+	[ ] Julius 設定ファイルをもっと簡単に
+	[ ] GUI でごにょごにょ出来るようにする
+	[ ] 3D アバターを表示する
+	[ ] リップシンクする
+	[ ] なんか動く
 	[ ] ...
 
 for more details:

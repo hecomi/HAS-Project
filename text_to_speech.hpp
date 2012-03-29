@@ -44,10 +44,14 @@
 #include <string>
 #include <vector>
 
+/* openjtalk header */
 #include "mecab.h"
 #include "njd.h"
 #include "jpcommon.h"
 #include "HTS_engine.h"
+
+/* openal header */
+#include <AL/alut.h>
 
 /**
  * Open JTalkでTTSするクラス
@@ -70,8 +74,14 @@ public:
 	/**
 	 * 引数の言葉を喋らせる
 	 * @param[in] str	喋らせる文章
+	 * @param[in] fperiod	ピッチ（default = 240）
 	 */
-	void talk(const std::string& str);
+	void talk(const std::string& str, const int fperiod = 240);
+
+	/**
+	 *  再生中の wav をストップする
+	 */
+	void stop();
 
 private:
 	/**
@@ -105,9 +115,10 @@ private:
 	/**
 	 * パラメタなどを整形して synthesis を実行する
 	 * @param[in] sentence	喋らせる文章
+	 * @param[in] fperiod
 	 */
 	//!
-	void make_wav(const std::string& sentence);
+	void make_wav(const std::string& sentence, const int fperiod);
 
 	//! wav ファイルを再生する
 	void play_wav();
@@ -123,6 +134,9 @@ private:
 
 	//! 出力wavファイル名
 	const std::string wav_filename_;
+
+	//! 再生中の wav
+	ALuint wav_src_;
 };
 
 #endif // INCLUDE_OPENJTALK_HPP

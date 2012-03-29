@@ -77,24 +77,24 @@ void Julius::start()
 	getline(std::cin, line);
 }
 
-int Julius::add_callback(const int code, callback func, void* _this)
+int Julius::add_callback(const int code, callback func, void* has)
 {
-	return callback_add(recog_, code, func, _this);
+	return callback_add(recog_, code, func, has);
 }
 
-int Julius::add_speech_ready_callback(callback func, void* _this)
+int Julius::add_speech_ready_callback(callback func, void* has)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, _this);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, has);
 }
 
-int Julius::add_speech_start_callback(callback func, void* _this)
+int Julius::add_speech_start_callback(callback func, void* has)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, _this);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, has);
 }
 
-int Julius::add_result_callback(callback func, void* _this)
+int Julius::add_result_callback(callback func, void* has)
 {
-	return callback_add(recog_, CALLBACK_RESULT, func, _this);
+	return callback_add(recog_, CALLBACK_RESULT, func, has);
 }
 
 bool Julius::delete_callback(const int id)

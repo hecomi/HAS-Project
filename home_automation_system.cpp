@@ -9,8 +9,9 @@
 //  Constructor
 /* ------------------------------------------------------------------------- */
 HomeAutomationSystem::HomeAutomationSystem()
+: state_(HAS_STATE::INIT)
 {
-	iremocon_  = boost::make_shared<iRemocon>("192.168.0.3", 51013);
+	iremocon_  = boost::make_shared<iRemocon>("192.168.0.7", 51013);
 	julius_    = boost::make_shared<Julius>("julius/hmm_mono.jconf", "julius/gram/kaden");
 	tts_       = boost::make_shared<TextToSpeech>("openjtalk/mei_normal", "openjtalk/open_jtalk_dic_utf_8-1.05");
 
@@ -34,11 +35,11 @@ bool HomeAutomationSystem::learn_commands_from_xml(const std::string& file_name)
 		auto word = pt.second.get_optional<std::string>("<xmlattr>.word");
 		auto num  = pt.second.get_optional<int>("<xmlattr>.num");
 		if (!word || !num) {
-			std::cerr << boost::format("Error: %1% is invalid\n") % file_name;
+			std::cerr << boost::format("[HAS] Error: %1% is invalid\n") % file_name;
 			return false;
 		}
 		str_ir_map_.insert( std::make_pair(word.get(), num.get()) );
-		std::cout << boost::format("LEARNED: [%1%]\t%2%\n") % num.get() % word.get();
+		std::cout << boost::format("[HAS] LEARNED: [%1%]\t%2%\n") % num.get() % word.get();
 	}
 
 	return true;
@@ -74,19 +75,43 @@ boost::optional<int> HomeAutomationSystem::interpret(const std::string& sentence
 void HomeAutomationSystem::add_julius_callback()
 {
 	// 待機時処理
-	julius_->add_speech_ready_callback([](Recog*, void*){
-		std::cout << "<<< PLEASE SPEECH! >>>" << std::endl;
-	});
+	julius_->add_speech_ready_callback([](Recog*, void* has){
+		// callback の引数から this を復元
+		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
+
+		std::cout << "[HAS] PLEASE SPEACH!" << std::endl;
+		_this->state_ = HAS_STATE::READY;
+	}, this);
 
 	// 発話開始時処理
-	julius_->add_speech_start_callback([](Recog*, void*){
-		std::cout << "<<< SPEAKING... >>>" << std::endl;
-	});
+	julius_->add_speech_start_callback([](Recog*, void* has){
+		// callback の引数から this を復元
+		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
+
+		// HASが返答しているときに喋ったら喋りを中断する
+		if (_this->state_ == HAS_STATE::HAS_TALKING) {
+			std::cout << "[HAS] COMMAND CANCELED." << std::endl;
+			_this->state_ = HAS_STATE::CANCELED;
+			_this->tts_->stop();
+			return;
+		}
+
+		std::cout << "[HAS] YOU'RE SPEECHING NOW..." << std::endl;
+		_this->state_ = HAS_STATE::USER_SPEAKING;
+
+	}, this);
 
 	// 結果が返された時の処理
-	julius_->add_result_callback([](Recog* recog, void* _this){
+	julius_->add_result_callback([](Recog* recog, void* has){
 		// callback の引数から this を復元
-		HomeAutomationSystem* has = static_cast<HomeAutomationSystem*>(_this);
+		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
+
+		if (_this->state_ == HAS_STATE::CANCELED) {
+			std::cout << "[HAS] CANCELING WORD: " << std::endl;
+		}
+
+		std::cout << "[HAS] YOUR COMMAND:" << std::endl;
+		_this->state_ = HAS_STATE::ANALYZING;
 
 		// 結果を走査
 		for (const RecogProcess *r = recog->process_list; r; r = r->next) {
@@ -105,11 +130,17 @@ void HomeAutomationSystem::add_julius_callback()
 				std::cout << output << std::endl;
 
 				// コマンドに対応するIR番号を発信
-				auto ir_num = has->interpret(output);
+				auto ir_num = _this->interpret(output);
 				if (ir_num) {
-					has->talk(output + "、を実行します");
-					std::cout << ir_num << std::endl;
-					// has->iremocon_->ir_send(ir_num.get());
+					_this->state_ = HAS_STATE::HAS_TALKING;
+					_this->talk(output + "ですね。わかりました。");
+					if (_this->state_ == HAS_STATE::CANCELED) {
+						_this->talk("はい");
+						break;
+					}
+					_this->state_ = HAS_STATE::EXECUTING;
+					_this->iremocon_->ir_send(ir_num.get());
+					_this->state_ = HAS_STATE::DONE;
 				}
 			}
 		}
@@ -133,5 +164,5 @@ void HomeAutomationSystem::start()
 /* ------------------------------------------------------------------------- */
 void HomeAutomationSystem::talk(const std::string& str)
 {
-	tts_->talk(str);
+	tts_->talk(str, 200);
 }

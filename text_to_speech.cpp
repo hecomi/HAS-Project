@@ -64,9 +64,6 @@
 #include <sstream>
 #include <iostream>
 
-/* openal header */
-#include <AL/alut.h>
-
 //! buffer size for text2mecab
 const size_t MAXBUFLEN = 1024;
 
@@ -175,7 +172,7 @@ void TextToSpeech::synthesis(char *txt, FILE * wavfp)
 	Mecab_refresh(&open_jtalk_.mecab);
 }
 
-void TextToSpeech::make_wav(const std::string& sentence)
+void TextToSpeech::make_wav(const std::string& sentence, int fperiod)
 {
 	/* file name buffer size */
 	const size_t FILE_NAME_BUF_SIZE = 128;
@@ -206,9 +203,9 @@ void TextToSpeech::make_wav(const std::string& sentence)
 	char *fn_ts_lpf = NULL;
 
 	/* file names of windows */
-	const size_t FN_WS_BUF_SIZE = 3;
-	char **fn_ws_mgc = new char*[fn_ws_buf_size];
-	char **fn_ws_lf0 = new char*[fn_ws_buf_size];
+	const int FN_WS_BUF_SIZE = 3;
+	char **fn_ws_mgc = new char*[FN_WS_BUF_SIZE];
+	char **fn_ws_lf0 = new char*[FN_WS_BUF_SIZE];
 	for (int i = 0; i < FN_WS_BUF_SIZE; ++i) {
 		fn_ws_mgc[i] = new char[FILE_NAME_BUF_SIZE];
 		fn_ws_lf0[i] = new char[FILE_NAME_BUF_SIZE];
@@ -233,7 +230,6 @@ void TextToSpeech::make_wav(const std::string& sentence)
 
 	/* global parameter */
 	int sampling_rate = 48000;
-	int fperiod = 240;
 	double alpha = 0.5;
 	int stage = 0;               /* gamma = -1.0/stage */
 	double beta = 0.8;
@@ -242,6 +238,7 @@ void TextToSpeech::make_wav(const std::string& sentence)
 	double gv_weight_mgc = 1.0;
 	double gv_weight_lf0 = 1.0;
 	double gv_weight_lpf = 1.0;
+	HTS_Boolean use_log_gain = FALSE;
 
 	/* initialize and load */
 	initialize(sampling_rate, fperiod, alpha, stage, beta,
@@ -267,23 +264,28 @@ void TextToSpeech::play_wav()
 	alutInit(&alut_argc, alut_argv);
 
 	// ソースの用意
-	ALuint buf, src;
+	ALuint buf;
 	ALenum state;
 	buf = alutCreateBufferFromFile(wav_filename_.c_str());
-	alGenSources(1, &src);
-	alSourcei(src, AL_BUFFER, buf);
+	alGenSources(1, &wav_src_);
+	alSourcei(wav_src_, AL_BUFFER, buf);
 
 	// 再生
-	alSourcePlay(src);
-	alGetSourcei(src, AL_SOURCE_STATE, &state);
+	alSourcePlay(wav_src_);
+	alGetSourcei(wav_src_, AL_SOURCE_STATE, &state);
 	while (state == AL_PLAYING) {
-		alGetSourcei(src, AL_SOURCE_STATE, &state);
+		alGetSourcei(wav_src_, AL_SOURCE_STATE, &state);
 	}
 
 	// 後片付け
-	alDeleteSources(1, &src);
+	alDeleteSources(1, &wav_src_);
 	alDeleteBuffers(1, &buf);
 	alutExit();
+}
+
+void TextToSpeech::stop()
+{
+	alSourceStop(wav_src_);
 }
 
 void TextToSpeech::remove_wav() const
@@ -291,10 +293,10 @@ void TextToSpeech::remove_wav() const
 	remove( wav_filename_.c_str() );
 }
 
-void TextToSpeech::talk(const std::string& str)
+void TextToSpeech::talk(const std::string& str, int fperiod)
 {
 	std::cout << str << std::endl;
-	make_wav(str);
+	make_wav(str, fperiod);
 	play_wav();
 	remove_wav();
 }
