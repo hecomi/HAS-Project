@@ -17,9 +17,8 @@ public:
 	/**
 	 * Constructor
 	 * @param[in] jconf	jconf file name (-C parameter for Julius)
-	 * @param[in] gram		grammar bundle name (-gram parameter for Julius)
 	 */
-	Julius(const std::string& jconf, const std::string& gram);
+	Julius(const std::string& jconf);
 
 	/**
 	 *  Destroctor
@@ -78,7 +77,7 @@ public:
 	 *  @param[in] jconf jconf file name (-C parameter for Julius)
 	 *  @param[in] gram  grammar bundle name (-gram parameter for Julius)
 	 */
-	void init(const std::string& jconf, const std::string& gram);
+	void init(const std::string& jconf);
 
 	//! configuration parameter for Julius
 	Jconf* jconf_;

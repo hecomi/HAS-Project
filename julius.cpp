@@ -1,10 +1,11 @@
 #include <iostream>
+#include <cstring>
 #include "julius.hpp"
 
-Julius::Julius(const std::string& jconf, const std::string& gram)
+Julius::Julius(const std::string& jconf)
 : jconf_(nullptr), recog_(nullptr)
 {
-	init(jconf, gram);
+	init(jconf);
 }
 
 Julius::~Julius()
@@ -16,17 +17,13 @@ Julius::~Julius()
 	delete thread_;
 }
 
-void Julius::init(const std::string& jconf, const std::string& gram)
+void Julius::init(const std::string& jconf)
 {
 	// Arguments
 	const char* j_argv[] = {
 		"has",
 		"-C",
 		jconf.c_str(),
-		"-gram",
-		gram.c_str(),
-		"-input",
-		"mic"
 	};
 	const int j_argc = sizeof(j_argv) / sizeof(j_argv[0]);
 
@@ -37,6 +34,10 @@ void Julius::init(const std::string& jconf, const std::string& gram)
 		std::cout << "Error@j_config_load_args_new" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
+	// char* cjconf = strdup(jconf.c_str());
+	// jconf_ = j_config_load_file_new(cjconf);
+	// free(cjconf);
 
 	// Recog: Top level instance for the whole recognition process
 	// create recognition instance according to the jconf

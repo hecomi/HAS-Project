@@ -79,6 +79,11 @@ public:
 	void talk(const std::string& str, const int fperiod = 240);
 
 	/**
+	 *  前回の言葉をもう一度喋る
+	 */
+	void retalk();
+
+	/**
 	 *  再生中の wav をストップする
 	 */
 	void stop();
@@ -137,6 +142,12 @@ private:
 
 	//! 再生中の wav
 	ALuint wav_src_;
+
+	//! 前回喋った時の言葉
+	std::string str_;
+
+	//! 前回喋った時の速度
+	int fperiod_;
 };
 
 #endif // INCLUDE_OPENJTALK_HPP

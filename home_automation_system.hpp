@@ -33,16 +33,22 @@ private:
 
 	//! HASの状態
 	enum class HAS_STATE {
-		INIT,
-		READY,
-		USER_SPEAKING,
-		HAS_TALKING,
-		CANCELED,
-		ANALYZING,
-		EXECUTING,
-		DONE,
+		INIT,			//!< 初期化
+		READY,			//!< 発話待機
+		USER_SPEAKING,	//!< ユーザ発話中
+		HAS_TALKING,	//!< HASによるトークバック中
+		WAITING,		//!< コマンドキャンセル待機
+		CANCELED,		//!< コマンドキャンセル
+		ANALYZING,		//!< 解析中
+		EXECUTING,		//!< コマンド実行中
+		DONE,			//!< コマンド実行完了
 	};
+
+	//! HAS の状態
 	HAS_STATE state_;
+
+	//! キャンセルかどうか待機中に保持しておくための前回喋ったコマンド
+	std::string pre_str_;
 
 	/**
 	 * 認識させる文章と対応して送信する IR の番号を書いた
@@ -64,6 +70,21 @@ private:
 	 * Julius のコールバック関数を追加する
 	 */
 	void add_julius_callback();
+
+	/**
+	 * 発話待機時の処理
+	 */
+	void on_speech_ready(Recog* recog);
+
+	/**
+	 * 発話開始時の処理
+	 */
+	void on_speech_start(Recog* recog);
+
+	/**
+	 * 発話認識結果が返された時の処理
+	 */
+	void on_result(Recog* recog);
 
 public:
 	/**

@@ -23,7 +23,6 @@ CLEAN    = $(RM) *.o *.bak *~ core TAGS
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	cd $(OPENJTALK_DIR) && $(MAKE)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS) $(LJULIUS) $(LOPENJTALK)
 
 main.o home_automation_system.o:

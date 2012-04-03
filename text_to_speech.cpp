@@ -295,8 +295,19 @@ void TextToSpeech::remove_wav() const
 
 void TextToSpeech::talk(const std::string& str, int fperiod)
 {
+	// retalk の為に覚えておく
+	str_ = str; fperiod_ = fperiod;
+
 	std::cout << str << std::endl;
 	make_wav(str, fperiod);
+	play_wav();
+	remove_wav();
+}
+
+void TextToSpeech::retalk()
+{
+	std::cout << str_ << std::endl;
+	make_wav(str_, fperiod_);
 	play_wav();
 	remove_wav();
 }

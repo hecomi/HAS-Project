@@ -1,3 +1,4 @@
+#include <functional>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/format.hpp>
@@ -12,10 +13,10 @@ HomeAutomationSystem::HomeAutomationSystem()
 : state_(HAS_STATE::INIT)
 {
 	iremocon_  = boost::make_shared<iRemocon>("192.168.0.7", 51013);
-	julius_    = boost::make_shared<Julius>("julius/hmm_mono.jconf", "julius/gram/kaden");
-	tts_       = boost::make_shared<TextToSpeech>("openjtalk/mei_normal", "openjtalk/open_jtalk_dic_utf_8-1.05");
+	julius_    = boost::make_shared<Julius>("data/setting.jconf");
+	tts_       = boost::make_shared<TextToSpeech>("data/mei_normal", "openjtalk/open_jtalk_dic_utf_8-1.05");
 
-	learn_commands_from_xml("julius/gram/commands.xml");
+	learn_commands_from_xml("data/commands.xml");
 	add_julius_callback();
 	julius_->start();
 }
@@ -75,81 +76,134 @@ boost::optional<int> HomeAutomationSystem::interpret(const std::string& sentence
 void HomeAutomationSystem::add_julius_callback()
 {
 	// 待機時処理
-	julius_->add_speech_ready_callback([](Recog*, void* has){
+	julius_->add_speech_ready_callback([](Recog* recog, void* has){
 		// callback の引数から this を復元
 		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
-
-		std::cout << "[HAS] PLEASE SPEACH!" << std::endl;
-		_this->state_ = HAS_STATE::READY;
+		_this->on_speech_ready(recog);
 	}, this);
 
 	// 発話開始時処理
-	julius_->add_speech_start_callback([](Recog*, void* has){
+	julius_->add_speech_start_callback([](Recog* recog, void* has){
 		// callback の引数から this を復元
 		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
-
-		// HASが返答しているときに喋ったら喋りを中断する
-		if (_this->state_ == HAS_STATE::HAS_TALKING) {
-			std::cout << "[HAS] COMMAND CANCELED." << std::endl;
-			_this->state_ = HAS_STATE::CANCELED;
-			_this->tts_->stop();
-			return;
-		}
-
-		std::cout << "[HAS] YOU'RE SPEECHING NOW..." << std::endl;
-		_this->state_ = HAS_STATE::USER_SPEAKING;
-
+		_this->on_speech_start(recog);
 	}, this);
 
 	// 結果が返された時の処理
 	julius_->add_result_callback([](Recog* recog, void* has){
 		// callback の引数から this を復元
 		HomeAutomationSystem* _this = static_cast<HomeAutomationSystem*>(has);
-
-		if (_this->state_ == HAS_STATE::CANCELED) {
-			std::cout << "[HAS] CANCELING WORD: " << std::endl;
-		}
-
-		std::cout << "[HAS] YOUR COMMAND:" << std::endl;
-		_this->state_ = HAS_STATE::ANALYZING;
-
-		// 結果を走査
-		for (const RecogProcess *r = recog->process_list; r; r = r->next) {
-			WORD_INFO *winfo = r->lm->winfo;
-
-			for (int n = 0; n < r->result.sentnum; ++n) {
-				Sentence s   = r->result.sent[n];
-				WORD_ID *seq = s.word;
-				int seqnum   = s.word_num;
-
-				std::string output = "";
-				for (int i = 1; i < seqnum-1; ++i) {
-					// 認識結果の文章を取得
-					output += winfo->woutput[seq[i]];
-				}
-				std::cout << output << std::endl;
-
-				// コマンドに対応するIR番号を発信
-				auto ir_num = _this->interpret(output);
-				if (ir_num) {
-					_this->state_ = HAS_STATE::HAS_TALKING;
-					_this->talk(output + "ですね。わかりました。");
-					if (_this->state_ == HAS_STATE::CANCELED) {
-						_this->talk("はい");
-						break;
-					}
-					_this->state_ = HAS_STATE::EXECUTING;
-					_this->iremocon_->ir_send(ir_num.get());
-					_this->state_ = HAS_STATE::DONE;
-				}
-			}
-		}
+		_this->on_result(recog);
 	}, this);
 }
 
 /* ------------------------------------------------------------------------- */
-//  機械学習をするための素性リストを書きだす
+//  発話待機時のコールバック
 /* ------------------------------------------------------------------------- */
+void HomeAutomationSystem::on_speech_ready(Recog* recog)
+{
+	// キャンセル待機中
+	if (state_ == HAS_STATE::WAITING) return;
+
+	std::cout << "[HAS] PLEASE SPEACH!" << std::endl;
+	state_ = HAS_STATE::READY;
+}
+
+/* ------------------------------------------------------------------------- */
+//  発話開始時のコールバック
+/* ------------------------------------------------------------------------- */
+void HomeAutomationSystem::on_speech_start(Recog* recog)
+{
+	// キャンセル待機中
+	if (state_ == HAS_STATE::WAITING) return;
+
+	// HASが返答しているときに喋ったら喋りを中断してキャンセルするか聴く
+	if (state_ == HAS_STATE::HAS_TALKING) {
+		std::cout << "[HAS] CANCEL...?" << std::endl;
+		state_ = HAS_STATE::WAITING;
+		tts_->stop();
+		return;
+	}
+
+	std::cout << "[HAS] YOU'RE SPEECHING NOW..." << std::endl;
+	state_ = HAS_STATE::USER_SPEAKING;
+}
+
+/* ------------------------------------------------------------------------- */
+//  認識結果が返された時のコールバック
+/* ------------------------------------------------------------------------- */
+void HomeAutomationSystem::on_result(Recog* recog)
+{
+	if (state_ != HAS_STATE::WAITING) {
+		std::cout << "[HAS] YOUR COMMAND:" << std::endl;
+		state_ = HAS_STATE::ANALYZING;
+	}
+
+	// 結果を走査
+	for (const RecogProcess *r = recog->process_list; r; r = r->next) {
+		WORD_INFO *winfo = r->lm->winfo;
+
+		for (int n = 0; n < r->result.sentnum; ++n) {
+			// Windows だと起こらないらしい
+			if (r->result.sent == nullptr) break;
+
+			Sentence s   = r->result.sent[n];
+			WORD_ID *seq = s.word;
+			int seqnum   = s.word_num;
+
+			// 認識結果の文章を取得
+			std::string output;
+			for (int i = 1; i < seqnum-1; ++i) {
+				output += winfo->woutput[seq[i]];
+			}
+			std::cout << output << std::endl;
+
+			// キャンセル待機中
+			if (state_ == HAS_STATE::WAITING) {
+				// キャンセルワードに引っかかる場合
+				for (const auto& str : {"キャンセル", "うん", "します", "はい"}) {
+					std::cout << str << " : " << output << std::endl;
+					if (output.find(str) != std::string::npos) {
+						talk("キャンセルしました");
+						state_ = HAS_STATE::DONE;
+						return;
+					}
+				}
+
+				// キャンセルワードに引っかからなかった場合
+				// （= 物音等で中断してしまった場合）
+				talk("失礼しました。" + pre_str_ + "を実行します。");
+				auto ir_num = interpret(pre_str_);
+				if (ir_num) {
+					// IR信号を発信する
+					state_ = HAS_STATE::EXECUTING;
+					iremocon_->ir_send(ir_num.get());
+					state_ = HAS_STATE::DONE;
+				}
+				return;
+			}
+
+			// コマンドに対応するIR番号を発信
+			auto ir_num = interpret(output);
+			if (ir_num) {
+				state_ = HAS_STATE::HAS_TALKING;
+				talk(output + "ですね。わかりました。");
+
+				// 途中で喋りを中断された場合は返事をしてループを抜ける
+				if (state_ == HAS_STATE::WAITING) {
+					pre_str_ = output;
+					talk("キャンセルしますか？");
+					return;
+				}
+
+				// IR信号を発信する
+				state_ = HAS_STATE::EXECUTING;
+				iremocon_->ir_send(ir_num.get());
+				state_ = HAS_STATE::DONE;
+			}
+		}
+	}
+}
 
 /* ------------------------------------------------------------------------- */
 //  認識開始
@@ -166,3 +220,8 @@ void HomeAutomationSystem::talk(const std::string& str)
 {
 	tts_->talk(str, 200);
 }
+
+/* ------------------------------------------------------------------------- */
+//  機械学習をするための素性リストを書きだす
+/* ------------------------------------------------------------------------- */
+/* under constructing... */
