@@ -37,7 +37,7 @@ public:
 
 	/**
 	 * iRemocon で IR 信号を学習する
-	 * @param [in] num	発信する学習した IR 信号番号
+	 * @param [in] num	学習する IR 信号番号
 	 * @return			コマンド送信の成否
 	 */
 	bool ir_recieve(const int num) const;

@@ -11,10 +11,8 @@ Julius::Julius(const std::string& jconf)
 Julius::~Julius()
 {
 	j_close_stream(recog_);
-	thread_->join();
-	recog_->jconf = NULL;
+	recog_->jconf = nullptr;
 	j_recog_free(recog_);
-	delete thread_;
 }
 
 void Julius::init(const std::string& jconf)
@@ -34,10 +32,6 @@ void Julius::init(const std::string& jconf)
 		std::cout << "Error@j_config_load_args_new" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	// char* cjconf = strdup(jconf.c_str());
-	// jconf_ = j_config_load_file_new(cjconf);
-	// free(cjconf);
 
 	// Recog: Top level instance for the whole recognition process
 	// create recognition instance according to the jconf
@@ -68,34 +62,35 @@ void Julius::start()
 		case -2: std::cout << "Failed to begin input stream" << std::endl; return;
 	}
 
-	// Recognition loop
-	thread_ = new boost::thread([&]() {
-		j_recognize_stream(recog_);
-	});
+	// // Recognition loop
+	// thread_ = new boost::thread([&]() {
+	// 	j_recognize_stream(recog_);
+	// });
+	j_recognize_stream(recog_);
 
-	// Waiting for input
-	std::string line;
-	getline(std::cin, line);
+	// // Waiting for input
+	// std::string line;
+	// getline(std::cin, line);
 }
 
-int Julius::add_callback(const int code, callback func, void* has)
+int Julius::add_callback(const int code, callback func, void* ptr)
 {
-	return callback_add(recog_, code, func, has);
+	return callback_add(recog_, code, func, ptr);
 }
 
-int Julius::add_speech_ready_callback(callback func, void* has)
+int Julius::add_speech_ready_callback(callback func, void* ptr)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, has);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_READY, func, ptr);
 }
 
-int Julius::add_speech_start_callback(callback func, void* has)
+int Julius::add_speech_start_callback(callback func, void* ptr)
 {
-	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, has);
+	return callback_add(recog_, CALLBACK_EVENT_SPEECH_START, func, ptr);
 }
 
-int Julius::add_result_callback(callback func, void* has)
+int Julius::add_result_callback(callback func, void* ptr)
 {
-	return callback_add(recog_, CALLBACK_RESULT, func, has);
+	return callback_add(recog_, CALLBACK_RESULT, func, ptr);
 }
 
 bool Julius::delete_callback(const int id)
